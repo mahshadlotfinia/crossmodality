@@ -1,0 +1,776 @@
+ocean_root:    /PATH
+home_root:     /PATH
+user_home:     /PATH
+datasets_root: /PATH/datasets
+repo_root:     "${home_root}/Repositories/crossmodality"
+
+outputs_root:  "${ocean_root}/outputs/crossmodality"
+
+Crossmodality:
+  llm_api_key:          "YOUR_LLM_API_KEY_HERE"
+  llm_api_key_env:      "CROSSMODALITY_LLM_API_KEY"
+  llm_api_base_url:     "YOUR_SERVER_URL_HERE"
+  llm_api_base_url_env: "CROSSMODALITY_LLM_API_BASE_URL"
+  hf_token:             "YOUR_HF_TOKEN_HERE"
+  hf_token_env:         "HF_TOKEN"
+
+  serving:
+    verify_ssl:            true
+    concurrency:           16
+    long_call_concurrency: 4
+    min_image_tokens:      64
+    timeout_s:             120
+    timeout_per_token_s:   0.12
+    timeout_request_max_s: 2400
+    max_retries:           5
+    retry_backoff_s:       2.0
+    retry_backoff_max_s:   30
+    connect_retry_max_s:   600
+    rate_limit_retries:    8
+    logprobs_top_k:        20
+    max_consecutive_failures: 30
+
+  generation:
+    temperature:               0.0
+    max_new_tokens:            10
+    regenerate_max_new_tokens: 64
+    option_regenerate_max_new_tokens: 1024
+    reasoning_max_new_tokens:  1024
+  prompts:
+    stems: [["presence", "Is there {display} in this {noun}?"], ["tissue", "Does this {noun} mainly show {display}?"]]
+    answer_instruction: "Answer with a single word: Yes or No."
+    specialist_question: "You are {specialist}. {stem}"
+    specialist_instruction: "Answer Yes or No."
+    specialists: [["cxr", "a radiologist"], ["mammo", "a radiologist"], ["fundus", "an ophthalmologist"], ["derm", "a dermatologist"], ["histo", "a pathologist"], ["ct", "a radiologist"], ["mri", "a radiologist"], ["us", "a radiologist"]]
+    reasoning_template: "{question}\nYour task:\n1. Think through the question step by step, enclose your reasoning process in <think>...</think> tags.\n2. Then provide the correct answer, Yes or No, inside <answer>...</answer> tags.\n3. No extra information or text outside of these tags."
+    options_instruction: "Answer with the letter of the correct option."
+    option_line: "{letter}. {text}"
+    reasoning_template_options: "{question}\nYour task:\n1. Think through the question step by step, enclose your reasoning process in <think>...</think> tags.\n2. Then provide the correct single-letter choice (A, B, C, D,...) inside <answer>...</answer> tags.\n3. No extra information or text outside of these tags."
+  parser:
+    affirmative_tokens: ["yes", "yeah", "correct", "true", "present", "positive"]
+    negative_tokens:    ["no", "not", "absent", "negative", "false", "incorrect"]
+    abstention_phrases: ["need to see", "cannot see", "can't see", "unable to see", "cannot determine", "can't determine", "cannot assess", "unable to assess", "cannot evaluate", "unable to evaluate", "no image", "without the image", "without an image", "image is not", "not provided", "not able to", "i cannot", "i can't", "i am unable", "i'm unable", "insufficient information", "not possible to determine", "please provide"]
+    head_chars:         60
+    yes_tokens:         ["Yes", "yes", "YES", " Yes", " yes", " YES"]
+    no_tokens:          ["No", "no", "NO", " No", " no", " NO"]
+    answer_tag_open:    "<answer>"
+    answer_tag_close:   "</answer>"
+    think_tag_close:    "</think>"
+  option_parser:
+    letters:    ["A", "B", "C", "D", "E", "F", "G", "H"]
+    head_chars: 60
+
+  models:
+    Qwen3-VL-2B:          {hf_id: "Qwen/Qwen3-VL-2B-Instruct", served_name: "Qwen/Qwen3-VL-2B-Instruct", reasoning: false}
+    Qwen3-VL-4B:          {hf_id: "Qwen/Qwen3-VL-4B-Instruct", served_name: "Qwen/Qwen3-VL-4B-Instruct", reasoning: false}
+    Qwen3-VL-8B:          {hf_id: "Qwen/Qwen3-VL-8B-Instruct", served_name: "Qwen/Qwen3-VL-8B-Instruct", reasoning: false}
+    Qwen3-VL-32B:         {hf_id: "Qwen/Qwen3-VL-32B-Instruct", served_name: "Qwen/Qwen3-VL-32B-Instruct", reasoning: false}
+    InternVL3.5-1B:       {hf_id: "OpenGVLab/InternVL3_5-1B", served_name: "OpenGVLab/InternVL3_5-1B", reasoning: false}
+    InternVL3.5-2B:       {hf_id: "OpenGVLab/InternVL3_5-2B", served_name: "OpenGVLab/InternVL3_5-2B", reasoning: false}
+    InternVL3.5-4B:       {hf_id: "OpenGVLab/InternVL3_5-4B", served_name: "OpenGVLab/InternVL3_5-4B", reasoning: false}
+    InternVL3.5-8B:       {hf_id: "OpenGVLab/InternVL3_5-8B", served_name: "OpenGVLab/InternVL3_5-8B", reasoning: false}
+    InternVL3.5-14B:      {hf_id: "OpenGVLab/InternVL3_5-14B", served_name: "OpenGVLab/InternVL3_5-14B", reasoning: false}
+    Gemma-3-4B:           {hf_id: "google/gemma-3-4b-it", served_name: "google/gemma-3-4b-it", reasoning: false}
+    Gemma-3-12B:          {hf_id: "google/gemma-3-12b-it", served_name: "google/gemma-3-12b-it", reasoning: false}
+    Gemma-3-27B:          {hf_id: "google/gemma-3-27b-it", served_name: "google/gemma-3-27b-it", reasoning: false}
+    Qwen3.5-4B:           {hf_id: "Qwen/Qwen3.5-4B", served_name: "Qwen/Qwen3.5-4B", reasoning: false, enable_thinking: false}
+    Qwen3.5-9B:           {hf_id: "Qwen/Qwen3.5-9B", served_name: "Qwen/Qwen3.5-9B", reasoning: false, enable_thinking: false}
+    Qwen3.5-27B:          {hf_id: "Qwen/Qwen3.5-27B", served_name: "Qwen/Qwen3.5-27B", reasoning: false, enable_thinking: false}
+    Ministral-3-3B:       {hf_id: "mistralai/Ministral-3-3B-Instruct-2512-BF16", served_name: "mistralai/Ministral-3-3B-Instruct-2512-BF16", reasoning: false}
+    Ministral-3-8B:       {hf_id: "mistralai/Ministral-3-8B-Instruct-2512-BF16", served_name: "mistralai/Ministral-3-8B-Instruct-2512-BF16", reasoning: false}
+    Ministral-3-14B:      {hf_id: "mistralai/Ministral-3-14B-Instruct-2512-BF16", served_name: "mistralai/Ministral-3-14B-Instruct-2512-BF16", reasoning: false}
+    InternVL3-8B:         {hf_id: "OpenGVLab/InternVL3-8B", served_name: "OpenGVLab/InternVL3-8B", reasoning: false}
+    InternVL3-2B:         {hf_id: "OpenGVLab/InternVL3-2B", served_name: "OpenGVLab/InternVL3-2B", reasoning: false}
+    InternVL3-14B:        {hf_id: "OpenGVLab/InternVL3-14B", served_name: "OpenGVLab/InternVL3-14B", reasoning: false}
+    InternVL3-1B:         {hf_id: "OpenGVLab/InternVL3-1B", served_name: "OpenGVLab/InternVL3-1B", reasoning: false}
+    Qwen2.5-VL-7B:        {hf_id: "Qwen/Qwen2.5-VL-7B-Instruct", served_name: "Qwen/Qwen2.5-VL-7B-Instruct", reasoning: false}
+    Qwen3.6-27B:          {hf_id: "Qwen/Qwen3.6-27B", served_name: "Qwen/Qwen3.6-27B", reasoning: false, enable_thinking: false}
+    Gemma-4-31B:          {hf_id: "google/gemma-4-31B-it", served_name: "google/gemma-4-31B-it", reasoning: false}
+    MedGemma-1.5-4B:      {hf_id: "google/medgemma-1.5-4b-it", served_name: "google/medgemma-1.5-4b-it", reasoning: false}
+    MedGemma-27B:         {hf_id: "google/medgemma-27b-it", served_name: "google/medgemma-27b-it", reasoning: false}
+    Qwen3.8-27B:          {hf_id: "Qwen/Qwen3.8-27B", served_name: "Qwen/Qwen3.8-27B", reasoning: false, enable_thinking: false}
+    Gemma-4-26B:          {hf_id: "google/gemma-4-26B-A4B-it", served_name: "google/gemma-4-26B-A4B-it", reasoning: false}
+    Qwen3.8-Flash-Next:   {hf_id: "Qwen/Qwen3.8-Flash-Next", served_name: "nvidia/Qwen3.8-Flash-Next-NVFP4", reasoning: false, enable_thinking: false}
+    Lingshu-I-8B:         {hf_id: "lingshu-medical-mllm/Lingshu-I-8B", served_name: "lingshu-medical-mllm/Lingshu-I-8B", reasoning: false}
+    LLaVA-Med-7B:         {hf_id: "chaoyinshe/llava-med-v1.5-mistral-7b-hf", served_name: "/PATH/llava-med-v1.5-7b-hf", reasoning: false, date_from: "microsoft/llava-med-v1.5-mistral-7b"}
+    Mistral-Small-3.2-24B: {hf_id: "mistralai/Mistral-Small-3.2-24B-Instruct-2506", served_name: "mistralai/Mistral-Small-3.2-24B-Instruct-2506", reasoning: false}
+    Gemma-4-E4B:          {hf_id: "google/gemma-4-E4B-it", served_name: "google/gemma-4-E4B-it", reasoning: false}
+    Qwen3.6-35B-A3B:      {hf_id: "Qwen/Qwen3.6-35B-A3B", served_name: "Qwen/Qwen3.6-35B-A3B", reasoning: false, enable_thinking: false}
+    Nemotron-3-Nano-Omni-30B-A3B: {hf_id: "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16", served_name: "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16", reasoning: false, enable_thinking: false}
+    Mistral-Small-4-119B-A6B: {hf_id: "mistralai/Mistral-Small-4-119B-2603", served_name: "mistralai/Mistral-Small-4-119B-2603-NVFP4", reasoning: false, reasoning_effort: "none"}
+    Qwen3.5-122B-A10B:    {hf_id: "Qwen/Qwen3.5-122B-A10B", served_name: "Qwen/Qwen3.5-122B-A10B-FP8", reasoning: false, enable_thinking: false}
+
+  stats:
+    n_boot:    1000
+    boot_seed: 0
+
+  datasets:
+    vindr_cxr:
+      labels_csv:      "${datasets_root}/XRay/vindr-cxr1/vindr_cxr_master_list.csv"
+      boxes_csv:       "${datasets_root}/XRay/vindr-cxr1/vindr_annotations.csv"
+      dicom_meta_csvs: ["${datasets_root}/XRay/vindr-cxr1/metadata/test_dicom_metadata.csv", "${datasets_root}/XRay/vindr-cxr1/metadata/train_dicom_metadata.csv"]
+      image_dir:       "${datasets_root}/XRay/vindr-cxr1/preprocessed"
+      image_size:      [512, 512]
+      eval_splits:     ["test"]
+      partitions:      ["eval", "dev"]
+    vindr_mammo:
+      findings_csv:         "${datasets_root}/Mammo/VinDr-Mammo/finding_annotations.csv"
+      breast_csv:           "${datasets_root}/Mammo/VinDr-Mammo/breast-level_annotations.csv"
+      image_dir:            "${datasets_root}/Mammo/VinDr-Mammo/images"
+      image_size:           [912, 1520]
+      eval_splits:          ["test"]
+      partitions:           ["eval", "dev"]
+      no_finding_label:     "No Finding"
+      negative_birads:      ["BI-RADS 1"]
+      other_finding_birads: ["BI-RADS 3", "BI-RADS 4", "BI-RADS 5"]
+    ddr:
+      grading_dir:       "${datasets_root}/Fundus/DDR/DR_grading"
+      lesion_dir:        "${datasets_root}/Fundus/DDR/lesion_segmentation"
+      image_dir:         "${datasets_root}/Fundus/preprocessed512/ddr"
+      image_size:        [512, 512]
+      splits:            ["train", "valid", "test"]
+      lesion_label_dirs: [["train", "label"], ["valid", "segmentation label"], ["test", "label"]]
+      lesion_types:      ["EX", "HE", "MA", "SE"]
+      eval_splits:       ["valid", "test"]
+      partitions:        ["eval", "dev"]
+    isic2019:
+      groundtruth_csv:    "${datasets_root}/Derm/ISIC2019/ISIC_2019_Training_GroundTruth.csv"
+      metadata_csv:       "${datasets_root}/Derm/ISIC2019/ISIC_2019_Training_Metadata.csv"
+      image_dir:          "${datasets_root}/Derm/preprocessed512/isic2019"
+      lesion_mask_dir:    "${datasets_root}/Derm/ISIC2018_Task1/ISIC2018_Task1_Training_GroundTruth"
+      attribute_mask_dir: "${datasets_root}/Derm/ISIC2018_Task2/ISIC2018_Task2_Training_GroundTruth_v3"
+      image_size:         [512, 512]
+      image_extensions:   [".jpg", ".png"]
+      downsampled_suffix: "_downsampled"
+      release_split:      "training"
+      partitions:         ["eval", "dev"]
+      attributes:         ["pigment_network", "globules", "milia_like_cyst", "negative_network", "streaks"]
+    pcam:
+      x_h5:          "${datasets_root}/Histo/PCam/camelyonpatch_level_2_split_test_x.h5"
+      y_h5:          "${datasets_root}/Histo/PCam/camelyonpatch_level_2_split_test_y.h5"
+      meta_csv:      "${datasets_root}/Histo/PCam/camelyonpatch_level_2_split_test_meta.csv"
+      image_size:    [96, 96]
+      release_split: "test"
+      partitions:    ["eval"]
+    nct_crc:
+      eval_dir:         "${datasets_root}/Histo/NCT-CRC-HE-100K/CRC-VAL-HE-7K"
+      dev_dir:          "${datasets_root}/Histo/NCT-CRC-HE-100K/NCT-CRC-HE-100K"
+      image_size:       [224, 224]
+      image_extensions: [".tif"]
+      background_class: "BACK"
+      partitions:       ["eval", "dev"]
+    bhsd:
+      dir:                 "${datasets_root}/CT/BHSD"
+      index_csv:           "${datasets_root}/CT/BHSD/preprocess_index.csv"
+      label_values:        [["epidural", 1], ["intraparenchymal", 2], ["intraventricular", 3], ["subarachnoid", 4], ["subdural", 5]]
+      max_positive_slices: 3
+      min_slice_distance:  2
+      partitions:          ["eval", "dev"]
+    lidc:
+      dir:                "${datasets_root}/CT/LIDC-IDRI"
+      index_csv:          "${datasets_root}/CT/LIDC-IDRI/preprocess_index.csv"
+      lung_slice_min_mm2: 1000
+      table_area_ratio:   0.5
+      partitions:         ["eval", "dev"]
+    brats2021:
+      dir:                    "${datasets_root}/MRI/BraTS2021"
+      index_csv:              "${datasets_root}/MRI/BraTS2021/preprocess_index.csv"
+      file_regex:             "^(?P<subject>BraTS2021_[0-9]+)_(?P<sequence>flair|t1ce|seg)\\.nii\\.gz$"
+      tumor_labels:           [1, 2, 4]
+      enhancing_label:        4
+      tumor_min_fraction:     0.01
+      enhancing_min_fraction: 0.002
+      partitions:             ["eval", "dev"]
+    picai:
+      dir:               "${datasets_root}/MRI/PI-CAI/picai_public"
+      index_csv:         "${datasets_root}/MRI/PI-CAI/picai_public/preprocess_index.csv"
+      marksheet:         "${datasets_root}/MRI/PI-CAI/picai_labels/clinical_information/marksheet.csv"
+      lesion_dirs:       ["${datasets_root}/MRI/PI-CAI/picai_labels/csPCa_lesion_delineations/human_expert/resampled", "${datasets_root}/MRI/PI-CAI/picai_labels/csPCa_lesion_delineations/human_expert/Pooch25"]
+      gland_dir:         "${datasets_root}/MRI/PI-CAI/picai_labels/anatomical_delineations/whole_gland/AI/Bosma22b"
+      file_regex:        "^(?P<patient>[0-9]+)_(?P<study>[0-9]+)_t2w\\.nii\\.gz$"
+      patient_column:    "patient_id"
+      study_column:      "study_id"
+      label_column:      "case_csPCa"
+      center_column:     "center"
+      positive_value:    "YES"
+      negative_value:    "NO"
+      main_center:       "RUMC"
+      crop_factor:       2.0
+      partitions:        ["eval", "dev"]
+    busbra:
+      dir:              "${datasets_root}/Ultrasound/BUS-BRA"
+      index_csv:        "${datasets_root}/Ultrasound/BUS-BRA/preprocess_index.csv"
+      metadata_csv:     "${datasets_root}/Ultrasound/BUS-BRA/bus_data.csv"
+      id_column:        "ID"
+      pathology_column: "Pathology"
+      malignant_value:  "malignant"
+      patient_regex:    "^bus_([0-9]+)-"
+      image_size:       [512, 512]
+      partitions:       ["eval", "dev"]
+    busi:
+      dir:              "${datasets_root}/Ultrasound/BUSI"
+      index_csv:        "${datasets_root}/Ultrasound/BUSI/preprocess_index.csv"
+      classes:          ["benign", "malignant", "normal"]
+      normal_class:     "normal"
+      image_size:       [512, 512]
+      partitions:       ["eval"]
+    taix:
+      labels_csv:  "${datasets_root}/XRay/TAIX-Ray/taix_master_list.csv"
+      image_dir:   "${datasets_root}/XRay/TAIX-Ray/preprocessed"
+      image_size:  [512, 512]
+      eval_splits: ["test"]
+      partitions:  ["eval", "dev"]
+    padchest:
+      labels_csv:  "${datasets_root}/XRay/padchest/padchest_master_list_20percenttest.csv"
+      image_dir:   "${datasets_root}/XRay/padchest/preprocessed"
+      image_size:  [512, 512]
+      views:       ["PA", "AP", "AP_horizontal"]
+      eval_splits: ["test"]
+      partitions:  ["eval", "dev"]
+    chestxdet:
+      annotations:   [["train", "${datasets_root}/XRay/ChestX-Det/ChestX_Det_train.json"], ["test", "${datasets_root}/XRay/ChestX-Det/ChestX_Det_test.json"]]
+      image_dir:     "${datasets_root}/XRay/ChestX-Det/preprocessed"
+      image_subdirs: [["train", "train_data/train"], ["test", "test_data/test"]]
+      box_frame:     1024
+      image_size:    [512, 512]
+      partitions:    ["eval"]
+    cbis_ddsm:
+      dir:               "${datasets_root}/Mammo/CBIS-DDSM"
+      index_csv:         "${datasets_root}/Mammo/CBIS-DDSM/preprocess_index.csv"
+      case_csvs:         [["mass", "${datasets_root}/Mammo/CBIS-DDSM/mass_case_description_test_set.csv"], ["calcification", "${datasets_root}/Mammo/CBIS-DDSM/calc_case_description_test_set.csv"]]
+      image_path_column: "image file path"
+      roi_path_column:   "ROI mask file path"
+      image_size:        [1024, 1024]
+      partitions:        ["eval"]
+    cmmd:
+      dir:                "${datasets_root}/Mammo/CMMD"
+      index_csv:          "${datasets_root}/Mammo/CMMD/preprocess_index.csv"
+      clinical_xlsx:      "${datasets_root}/Mammo/CMMD/CMMD_clinicaldata_revision.xlsx"
+      id_columns:         ["ID2", "ID1"]
+      side_column:        "LeftRight"
+      abnormality_column: "abnormality"
+      image_size:         [1024, 1024]
+      partitions:         ["eval"]
+    cq500:
+      dir:               "${datasets_root}/CT/CQ500"
+      index_csv:         "${datasets_root}/CT/CQ500/preprocess_index.csv"
+      reads_csv:         "${datasets_root}/CT/CQ500/reads.csv"
+      slices_dir:        "${datasets_root}/CT/CQ500/slices"
+      bhx_csv:           "${datasets_root}/CT/CQ500/BHX/1_Initial_Manual_Labeling.csv"
+      bhx_columns:       {sop: "SOPInstanceUID", label: "labelName", type: "labelType", box: "data"}
+      hand_drawn_type:   "handDrawn"
+      reads_name_column: "name"
+      reader_columns:    ["R1:ICH", "R2:ICH", "R3:ICH"]
+      partitions:        ["eval"]
+    breast:
+      dir:              "${datasets_root}/Ultrasound/BrEaST"
+      index_csv:        "${datasets_root}/Ultrasound/BrEaST/preprocess_index.csv"
+      clinical_xlsx:    "${datasets_root}/Ultrasound/BrEaST/BrEaST-Lesions-USG-clinical-data-Dec-15-2023.xlsx"
+      image_column:     "Image_filename"
+      class_column:     "Classification"
+      image_size:       [512, 512]
+      partitions:       ["eval"]
+    aptos:
+      labels_csv: "${datasets_root}/Fundus/APTOS2019/train.csv"
+      image_dir:  "${datasets_root}/Fundus/preprocessed512/aptos"
+      image_size: [512, 512]
+      partitions: ["eval"]
+    messidor2:
+      labels_csv: "${datasets_root}/Fundus/Messidor2/messidor_data.csv"
+      pairs_csv:  "${datasets_root}/Fundus/Messidor2/messidor-2.csv"
+      image_dir:  "${datasets_root}/Fundus/preprocessed512/messidor"
+      image_size: [512, 512]
+      partitions: ["eval"]
+    idrid:
+      label_csvs:   [["train", "${datasets_root}/Fundus/IDRiD/B_Disease Grading/a. IDRiD_Disease Grading_Training Labels.csv"], ["test", "${datasets_root}/Fundus/IDRiD/B_Disease Grading/b. IDRiD_Disease Grading_Testing Labels.csv"]]
+      image_dirs:   [["train", "${datasets_root}/Fundus/IDRiD/B_Disease Grading/1. Original Images/a. Training Set"], ["test", "${datasets_root}/Fundus/IDRiD/B_Disease Grading/1. Original Images/b. Testing Set"]]
+      name_column:  "Image name"
+      grade_column: "Retinopathy grade"
+      partitions:   ["eval"]
+    derm7pt:
+      dir:          "${datasets_root}/Derm/Derm7pt"
+      index_csv:    "${datasets_root}/Derm/Derm7pt/preprocess_index.csv"
+      meta_csv:     "${datasets_root}/Derm/Derm7pt/meta.csv"
+      images_out:   "images512"
+      attributes:   ["pigment_network", "streaks", "dots_and_globules"]
+      absent_value: "absent"
+      image_size:   [512, 512]
+      partitions:   ["eval"]
+    ddi:
+      metadata_csv:     "${datasets_root}/Derm/DDI/ddi_metadata.csv"
+      image_dir:        "${datasets_root}/Derm/DDI/images"
+      skin_tone_groups: [[12, "I-II"], [34, "III-IV"], [56, "V-VI"]]
+      partitions:       ["eval"]
+    fitzpatrick17k:
+      metadata_csv:     "${datasets_root}/Derm/Fitzpatrick17k/fitzpatrick17k.csv"
+      image_dir:        "${datasets_root}/Derm/Fitzpatrick17k/images"
+      skin_type_groups: [[1, "I-II"], [2, "I-II"], [3, "III-IV"], [4, "III-IV"], [5, "V-VI"], [6, "V-VI"]]
+      excluded_qc:      ["3 Wrongly labelled"]
+      partitions:       ["eval"]
+    padufes:
+      dir:          "${datasets_root}/Derm/PAD-UFES-20"
+      index_csv:    "${datasets_root}/Derm/PAD-UFES-20/preprocess_index.csv"
+      metadata_csv: "${datasets_root}/Derm/PAD-UFES-20/metadata.csv"
+      image_size:   [512, 512]
+      partitions:   ["eval"]
+    camelyon17:
+      dir:          "${datasets_root}/Histo/Camelyon17-WILDS"
+      metadata_csv: "${datasets_root}/Histo/Camelyon17-WILDS/metadata.csv"
+      eval_centers: [1, 2]
+      image_size:   [96, 96]
+      partitions:   ["eval", "dev"]
+
+  question_sets:
+    seed:               0
+    n_per_class:        200
+    group_cap:          2
+    external_n_per_class: 100
+    external_group_cap:   1
+    modalities:
+      cxr:
+        noun: "chest X-ray"
+        input_size: 512
+        small_size: 224
+        channels: 1
+        findings:
+          cardiomegaly:       {dataset: "vindr_cxr", source_label: "Cardiomegaly", display: "cardiomegaly", n_expected: 200}
+          pleural_effusion:   {dataset: "vindr_cxr", source_label: "Pleural effusion", display: "pleural effusion", n_expected: 111}
+          nodule_mass:        {dataset: "vindr_cxr", source_label: "Nodule/Mass", display: "a lung nodule or mass", n_expected: 176}
+          pleural_thickening: {dataset: "vindr_cxr", source_label: "Pleural thickening", display: "pleural thickening", n_expected: 169}
+      mammo:
+        noun: "mammogram"
+        input_size: 1024
+        small_size: 512
+        channels: 1
+        findings:
+          mass:          {dataset: "vindr_mammo", source_label: "Mass", display: "a mass", n_expected: 200}
+          calcification: {dataset: "vindr_mammo", source_label: "Suspicious Calcification", display: "suspicious calcifications", n_expected: 105}
+      fundus:
+        noun: "retinal fundus photograph"
+        input_size: 512
+        small_size: 224
+        channels: 3
+        findings:
+          hard_exudates:  {dataset: "ddr", kind: "lesion", source_label: "EX", negative_grades: [1], display: "hard exudates", n_expected: 200}
+          hemorrhages:    {dataset: "ddr", kind: "lesion", source_label: "HE", negative_grades: [1], display: "retinal hemorrhages", n_expected: 200}
+          microaneurysms: {dataset: "ddr", kind: "lesion", source_label: "MA", negative_grades: [0], display: "microaneurysms", n_expected: 200}
+          soft_exudates:  {dataset: "ddr", kind: "lesion", source_label: "SE", negative_grades: [1], display: "soft exudates", n_expected: 128}
+          referable_dr:   {dataset: "ddr", kind: "grade", source_label: "grade", positive_grades: [2, 3, 4], negative_grades: [0, 1], display: "referable diabetic retinopathy", n_expected: 200}
+      derm:
+        noun: "dermoscopy image"
+        input_size: 512
+        small_size: 224
+        channels: 3
+        findings:
+          melanoma:        {dataset: "isic2019", kind: "class", source_label: "MEL", positive_classes: ["MEL"], evidence: "lesion_mask", display: "a melanoma", n_expected: 200}
+          bcc:             {dataset: "isic2019", kind: "class", source_label: "BCC", positive_classes: ["BCC"], evidence: "none", display: "a basal cell carcinoma", n_expected: 200}
+          malignant:       {dataset: "isic2019", kind: "class", source_label: "malignant", positive_classes: ["MEL", "BCC", "AK", "SCC"], evidence: "lesion_mask", display: "a malignant skin lesion", n_expected: 200}
+          pigment_network: {dataset: "isic2019", kind: "attribute", source_label: "pigment_network", evidence: "attribute_mask", display: "a pigment network", n_expected: 200}
+          globules:        {dataset: "isic2019", kind: "attribute", source_label: "globules", evidence: "attribute_mask", display: "globules", n_expected: 200}
+          milia_like_cyst: {dataset: "isic2019", kind: "attribute", source_label: "milia_like_cyst", evidence: "attribute_mask", display: "milia-like cysts", n_expected: 200}
+      histo:
+        noun: "lymph node histopathology image"
+        input_size: 512
+        small_size: 224
+        channels: 3
+        findings:
+          metastatic_tumor:  {dataset: "pcam", source_label: "tumor", group_cap: 10, dev_dataset: "camelyon17", dev_group_cap: 10, display: "metastatic tumor tissue", n_expected: 200}
+          tumor_epithelium:  {dataset: "nct_crc", source_label: "TUM", noun: "colorectal histopathology image", template: "tissue", display: "tumor epithelium", n_expected: 200}
+          normal_mucosa:     {dataset: "nct_crc", source_label: "NORM", noun: "colorectal histopathology image", template: "tissue", display: "normal colon mucosa", n_expected: 200}
+          lymphocytes:       {dataset: "nct_crc", source_label: "LYM", noun: "colorectal histopathology image", template: "tissue", display: "lymphocytes", n_expected: 200}
+          cancer_stroma:     {dataset: "nct_crc", source_label: "STR", noun: "colorectal histopathology image", template: "tissue", display: "cancer-associated stroma", n_expected: 200}
+      ct:
+        noun: "CT image"
+        input_size: 512
+        small_size: 224
+        channels: 1
+        findings:
+          intraparenchymal: {dataset: "bhsd", source_label: "intraparenchymal", display: "intraparenchymal hemorrhage", noun: "head CT image", positive_group_cap: 3, match_decile: true, exclude_positive_groups: true, n_expected: 84}
+          subdural:         {dataset: "bhsd", source_label: "subdural", display: "subdural hemorrhage", noun: "head CT image", positive_group_cap: 3, match_decile: true, exclude_positive_groups: true, n_expected: 87}
+          subarachnoid:     {dataset: "bhsd", source_label: "subarachnoid", display: "subarachnoid hemorrhage", noun: "head CT image", positive_group_cap: 3, match_decile: true, exclude_positive_groups: true, n_expected: 92}
+          intraventricular: {dataset: "bhsd", source_label: "intraventricular", display: "intraventricular hemorrhage", noun: "head CT image", positive_group_cap: 3, match_decile: true, exclude_positive_groups: true, n_expected: 89}
+          epidural:         {dataset: "bhsd", source_label: "epidural", display: "epidural hemorrhage", noun: "head CT image", positive_group_cap: 3, match_decile: true, exclude_positive_groups: true, min_eligible_positives: 100, n_expected: 0}
+          lung_nodule:      {dataset: "lidc", source_label: "nodule", display: "a lung nodule", noun: "chest CT image", positive_group_cap: 3, match_decile: true, n_expected: 134}
+      mri:
+        noun: "MRI image"
+        input_size: 512
+        small_size: 224
+        channels: 1
+        findings:
+          brain_tumor:     {dataset: "brats2021", kind: "tumor", source_label: "tumor", display: "a brain tumor", noun: "brain MRI image", group_cap: 2, match_decile: true, exclude_positive_groups: true, n_expected: 200}
+          enhancing_tumor: {dataset: "brats2021", kind: "enhancing", source_label: "enhancing", display: "a contrast-enhancing tumor", noun: "contrast-enhanced brain MRI image", group_cap: 2, n_expected: 200}
+          cspca:           {dataset: "picai", source_label: "csPCa", display: "clinically significant prostate cancer", noun: "prostate MRI image", group_cap: 2, match_decile: true, n_expected: 124}
+      us:
+        noun: "breast ultrasound image"
+        input_size: 512
+        small_size: 224
+        channels: 1
+        findings:
+          malignant_lesion: {dataset: "busbra", source_label: "malignant", display: "a malignant lesion", n_expected: 200}
+          lesion:           {dataset: "busi", source_label: "lesion", positive_classes: ["benign", "malignant"], display: "a lesion", n_expected: 133}
+    externals:
+      ext_taix:
+        modality: "cxr"
+        findings:
+          cardiomegaly:     {dataset: "taix", positive_column: "cardiomegaly_binary", negative_columns: ["cardiomegaly"], display: "cardiomegaly", n_expected: 100}
+          pleural_effusion: {dataset: "taix", positive_column: "pleural_effusion_binary", negative_columns: ["pleural_effusion_right", "pleural_effusion_left"], display: "pleural effusion", n_expected: 100}
+      ext_padchest:
+        modality: "cxr"
+        findings:
+          cardiomegaly:       {dataset: "padchest", source_label: "cardiomegaly", display: "cardiomegaly", n_expected: 100}
+          pleural_effusion:   {dataset: "padchest", source_label: "pleural_effusion", display: "pleural effusion", n_expected: 100}
+          nodule_mass:        {dataset: "padchest", source_label: "nodule_mass", display: "a lung nodule or mass", n_expected: 100}
+          pleural_thickening: {dataset: "padchest", source_label: "pleural_thickening", display: "pleural thickening", n_expected: 100}
+      ext_chestxdet:
+        modality: "cxr"
+        findings:
+          cardiomegaly:       {dataset: "chestxdet", source_labels: ["Cardiomegaly"], display: "cardiomegaly", n_expected: 100}
+          pleural_effusion:   {dataset: "chestxdet", source_labels: ["Effusion"], display: "pleural effusion", n_expected: 100}
+          nodule_mass:        {dataset: "chestxdet", source_labels: ["Nodule", "Mass"], exclude_labels: ["Diffuse Nodule"], display: "a lung nodule or mass", n_expected: 100}
+          pleural_thickening: {dataset: "chestxdet", source_labels: ["Pleural Thickening"], display: "pleural thickening", n_expected: 100}
+      ext_cbis_ddsm:
+        modality: "mammo"
+        findings:
+          mass:          {dataset: "cbis_ddsm", source_label: "mass", negative_label: "calcification", display: "a mass", n_expected: 100}
+          calcification: {dataset: "cbis_ddsm", source_label: "calcification", negative_label: "mass", display: "suspicious calcifications", n_expected: 100}
+      ext_cmmd:
+        modality: "mammo"
+        findings:
+          mass:          {dataset: "cmmd", positive_values: ["mass", "both"], negative_values: ["calcification"], display: "a mass", n_expected: 100}
+          calcification: {dataset: "cmmd", positive_values: ["calcification", "both"], negative_values: ["mass"], display: "suspicious calcifications", n_expected: 100}
+      ext_cq500:
+        modality: "ct"
+        noun: "head CT image"
+        findings:
+          intraparenchymal: {dataset: "cq500", source_labels: ["Intraparenchymal"], match_decile: true, display: "intraparenchymal hemorrhage", n_expected: 100}
+          subdural:         {dataset: "cq500", source_labels: ["Subdural"], match_decile: true, display: "subdural hemorrhage", n_expected: 82}
+          subarachnoid:     {dataset: "cq500", source_labels: ["Subarachnoid"], match_decile: true, display: "subarachnoid hemorrhage", n_expected: 100}
+          intraventricular: {dataset: "cq500", source_labels: ["Intraventricular"], match_decile: true, display: "intraventricular hemorrhage", n_expected: 39}
+      ext_picai:
+        modality: "mri"
+        noun: "prostate MRI image"
+        findings:
+          cspca: {dataset: "picai", source_label: "csPCa", centers: ["PCNN", "ZGT"], match_decile: true, display: "clinically significant prostate cancer", n_expected: 100}
+      ext_busi:
+        modality: "us"
+        findings:
+          malignant_lesion: {dataset: "busi", source_label: "malignant", positive_classes: ["malignant"], negative_classes: ["benign"], display: "a malignant lesion", n_expected: 100}
+      ext_breast:
+        modality: "us"
+        findings:
+          malignant_lesion: {dataset: "breast", source_label: "malignant", positive_classes: ["malignant"], negative_classes: ["benign"], display: "a malignant lesion", n_expected: 98}
+      ext_aptos:
+        modality: "fundus"
+        findings:
+          referable_dr: {dataset: "aptos", positive_grades: [2, 3, 4], negative_grades: [0, 1], display: "referable diabetic retinopathy", n_expected: 100}
+      ext_messidor2:
+        modality: "fundus"
+        findings:
+          referable_dr: {dataset: "messidor2", positive_grades: [2, 3, 4], negative_grades: [0, 1], display: "referable diabetic retinopathy", n_expected: 100}
+      ext_idrid:
+        modality: "fundus"
+        findings:
+          referable_dr: {dataset: "idrid", positive_grades: [2, 3, 4], negative_grades: [0, 1], display: "referable diabetic retinopathy", n_expected: 100}
+      ext_derm7pt:
+        modality: "derm"
+        findings:
+          melanoma:          {dataset: "derm7pt", kind: "diagnosis", positive_prefix: "melanoma", display: "a melanoma", n_expected: 100}
+          pigment_network:   {dataset: "derm7pt", kind: "attribute", source_label: "pigment_network", display: "a pigment network", n_expected: 100}
+          streaks:           {dataset: "derm7pt", kind: "attribute", source_label: "streaks", display: "streaks", n_expected: 100}
+          dots_and_globules: {dataset: "derm7pt", kind: "attribute", source_label: "dots_and_globules", display: "dots and globules", n_expected: 100}
+      ext_ddi:
+        modality: "derm"
+        noun: "clinical photograph of the skin"
+        findings:
+          malignant: {dataset: "ddi", stratify: true, n_per_class: null, display: "a malignant skin lesion", n_expected: 171}
+      ext_fitzpatrick17k:
+        modality: "derm"
+        noun: "clinical photograph of the skin"
+        findings:
+          malignant: {dataset: "fitzpatrick17k", positive_label: "malignant", negative_label: "benign", stratify: true, display: "a malignant skin lesion", n_expected: 300}
+      ext_padufes:
+        modality: "derm"
+        noun: "clinical photograph of the skin"
+        findings:
+          malignant: {dataset: "padufes", positive_classes: ["BCC", "SCC", "MEL", "ACK"], negative_classes: ["NEV", "SEK"], display: "a malignant skin lesion", n_expected: 100}
+      ext_camelyon17_h1:
+        modality: "histo"
+        findings:
+          metastatic_tumor: {dataset: "camelyon17", centers: [1], group_cap: 10, display: "metastatic tumor tissue", n_expected: 100}
+      ext_camelyon17_h2:
+        modality: "histo"
+        findings:
+          metastatic_tumor: {dataset: "camelyon17", centers: [2], group_cap: 10, display: "metastatic tumor tissue", n_expected: 100}
+
+  render:
+    shard_size: 500
+    modes: {vindr_cxr: "direct", vindr_mammo: "pad", ddr: "direct", isic2019: "direct", pcam: "direct_bicubic", nct_crc: "direct_bicubic", bhsd: "direct", lidc: "direct", brats2021: "direct", picai: "direct", busbra: "direct", busi: "direct", taix: "direct", padchest: "direct", chestxdet: "direct", cbis_ddsm: "pad", cmmd: "pad", cq500: "direct", breast: "direct", aptos: "direct", messidor2: "direct", idrid: "direct", derm7pt: "direct", ddi: "direct", fitzpatrick17k: "direct", padufes: "direct", camelyon17: "direct_bicubic"}
+
+  benchmarks:
+    max_side:    1024
+    yes_answers: ["yes"]
+    no_answers:  ["no"]
+    matching:    [["vqarad", ["cxr", "ct", "mri"]], ["slake", ["cxr", "ct", "mri"]], ["pathvqa", ["histo"]], ["pmcvqa", ["cxr", "mammo", "fundus", "derm", "histo", "ct", "mri", "us"]]]
+    sources:
+      vqarad:
+        reader:          "parquet_yesno"
+        files:           ["${datasets_root}/VQA/VQA-RAD/test-00000-of-00001-e5bc3d208bb4deeb.parquet"]
+        question_column: "question"
+        answer_column:   "answer"
+      slake:
+        reader:         "slake"
+        questions_json: "${datasets_root}/VQA/SLAKE/test.json"
+        image_dir:      "${datasets_root}/VQA/SLAKE/imgs"
+        language:       "en"
+      pathvqa:
+        reader:          "parquet_yesno"
+        files:           ["${datasets_root}/VQA/PathVQA/test-00000-of-00003-e9adadb4799f44d3.parquet", "${datasets_root}/VQA/PathVQA/test-00001-of-00003-7ea98873fc919813.parquet", "${datasets_root}/VQA/PathVQA/test-00002-of-00003-1628308435019820.parquet"]
+        question_column: "question"
+        answer_column:   "answer"
+      pmcvqa:
+        reader:          "pmcvqa"
+        questions_csv:   "${datasets_root}/VQA/PMC-VQA/test_clean.csv"
+        image_dir:       "${datasets_root}/VQA/PMC-VQA/images"
+        image_column:    "Figure_path"
+        question_column: "Question"
+        answer_column:   "Answer_label"
+        choice_columns:  [["A", "Choice A"], ["B", "Choice B"], ["C", "Choice C"], ["D", "Choice D"]]
+      omnimedvqa:
+        reader:       "omnimedvqa"
+        root:         "${datasets_root}/VQA/OmniMedVQA"
+        qa_dir:       "${datasets_root}/VQA/OmniMedVQA/QA_information/Open-access"
+        per_modality: 500
+        seed:         0
+        modalities:   [["ct", "CT"], ["mri", "MR"], ["cxr", "X-Ray"], ["us", "Ultrasound"], ["fundus", "Fundus"], ["derm", "Dermoscopy"], ["histo", "Microscopy"]]
+
+  robustness:
+    n_per_label:           100
+    determinism_questions: 100
+
+  runs:
+    dir:                 "${outputs_root}/runs"
+    determinism_repeats: 5
+    robustness_models:   ["Qwen3-VL-2B", "Qwen3-VL-8B", "Qwen3-VL-32B", "MedGemma-1.5-4B", "InternVL3.5-8B", "LLaVA-Med-7B"]
+    wave_factor:         4
+    claim_stale_after_s: 21600
+
+  dinov3:
+    model_key:      "DINOv3-L"
+    hf_id:          "facebook/dinov3-vitl16-pretrain-lvd1689m"
+    width:          1024
+    image_size:     224
+    device:         "cuda"
+    batch_size:     64
+    num_workers:    8
+    shard_size:     4096
+    dev_per_class:  2000
+    dev_group_cap:  2
+    c_grid:         [0.0001, 0.001, 0.01, 0.1, 1, 10]
+    cv_folds:       5
+    max_iter:       1000
+    seed:           0
+    purge_hf_cache_after_use: false
+    hf_cache_dir:   "${user_home}/.cache/huggingface/hub"
+
+  contrasts:
+    metrics:          ["auroc"]
+    ladders:          [["Qwen3-VL", ["Qwen3-VL-2B", "Qwen3-VL-4B", "Qwen3-VL-8B", "Qwen3-VL-32B"]], ["InternVL3.5", ["InternVL3.5-1B", "InternVL3.5-2B", "InternVL3.5-4B", "InternVL3.5-8B", "InternVL3.5-14B"]], ["Gemma 3", ["Gemma-3-4B", "Gemma-3-12B", "Gemma-3-27B"]], ["Qwen3.5", ["Qwen3.5-4B", "Qwen3.5-9B", "Qwen3.5-27B"]]]
+    training:         [["InternVL3-8B", "InternVL3.5-8B", "generation"], ["InternVL3-2B", "InternVL3.5-2B", "generation"], ["InternVL3-14B", "InternVL3.5-14B", "generation"], ["InternVL3-1B", "InternVL3.5-1B", "generation"], ["Qwen2.5-VL-7B", "Qwen3-VL-8B", "generation"], ["Qwen3-VL-4B", "Qwen3.5-4B", "generation"], ["Qwen3-VL-8B", "Qwen3.5-9B", "generation"], ["Qwen3.5-27B", "Qwen3.6-27B", "generation"], ["Qwen3.6-27B", "Qwen3.8-27B", "generation"], ["Gemma-3-27B", "Gemma-4-31B", "generation"], ["Gemma-3-4B", "MedGemma-1.5-4B", "medical"], ["Gemma-3-27B", "MedGemma-27B", "medical"], ["InternVL3-8B", "Lingshu-I-8B", "medical"]]
+    secondary_ladders: [["Ministral 3", ["Ministral-3-3B", "Ministral-3-8B", "Ministral-3-14B"]]]
+  selection:
+    seed:          0
+    n_draws:       1000
+    n_per_finding: [10, 25, 50, 100, 200]
+    regret_target: 0.01
+    omnimedvqa_benchmark: "omnimedvqa"
+    benchmark_mean_sets:  ["vqarad", "slake", "pathvqa", "pmcvqa"]
+  contamination:
+    training_data_csv: "${repo_root}/data_loader/assets/model_training_data.csv"
+    metrics:           ["auroc"]
+    medical_kind:      "medical"
+
+  preprocess:
+    shard_size: 200
+    partials_dir: "${outputs_root}/preprocess_partials"
+  downloads:
+    derm7pt:
+      adapter: "images"
+      raw: "${datasets_root}/Derm/Derm7pt/release_v0.zip"
+      out_dir: "${ocean_root}/datasets_staging/Derm/Derm7pt"
+      image_pattern: "release_v0/images/.+\\.(jpg|JPG|jpeg|png)$"
+      listed_member: "release_v0/meta/meta.csv"
+      listed_column: "derm"
+      strip_prefix: "^release_v0/images/"
+      rule: "direct"
+      size: 512
+      images_out: "images512"
+      keep_files: ["release_v0/meta/meta.csv"]
+      expected_gb: 0.35
+    busi:
+      adapter: "images"
+      raw: "${datasets_root}/Ultrasound/BUSI/breast-ultrasound-images-dataset.zip"
+      out_dir: "${ocean_root}/datasets_staging/Ultrasound/BUSI"
+      image_pattern: "(benign|malignant|normal)/[^/]+\\.png$"
+      exclude_pattern: "_mask(_[0-9]+)?\\.png$"
+      mask_regex: "^{dirp}{stem}_mask(_[0-9]+)?\\.png$"
+      strip_prefix: "^(Dataset_BUSI_with_GT/)?"
+      rule: "pad"
+      size: 512
+      images_out: "images512"
+      masks_out: "masks512"
+      expected_gb: 0.12
+    busbra:
+      adapter: "images"
+      raw: "${datasets_root}/Ultrasound/BUS-BRA/BUSBRA.zip"
+      out_dir: "${ocean_root}/datasets_staging/Ultrasound/BUS-BRA"
+      image_pattern: "Images/bus_[^/]+\\.png$"
+      mask_regex: "^{parentp}Masks/{stem}\\.png$"
+      mask_stem_from: "^bus_"
+      mask_stem_to: "mask_"
+      strip_prefix: "^(BUSBRA/)?Images/"
+      rule: "pad"
+      size: 512
+      images_out: "images512"
+      masks_out: "masks512"
+      keep_files: ["bus_data.csv"]
+      expected_gb: 0.3
+    breast:
+      adapter: "images"
+      raw: "${datasets_root}/Ultrasound/BrEaST/BrEaST-Lesions_USG-images_and_masks-Dec-15-2023.zip"
+      out_dir: "${ocean_root}/datasets_staging/Ultrasound/BrEaST"
+      image_pattern: "case[0-9]+\\.png$"
+      mask_regex: "^{dirp}{stem}_tumor\\.png$"
+      strip_prefix: "^.*/"
+      rule: "pad"
+      size: 512
+      images_out: "images512"
+      masks_out: "masks512"
+      copy_files: ["${datasets_root}/Ultrasound/BrEaST/BrEaST-Lesions-USG-clinical-data-Dec-15-2023.xlsx"]
+      expected_gb: 0.05
+    padufes:
+      adapter: "images"
+      raw: ["${datasets_root}/Derm/PAD-UFES-20/imgs_part_1.zip", "${datasets_root}/Derm/PAD-UFES-20/imgs_part_2.zip", "${datasets_root}/Derm/PAD-UFES-20/imgs_part_3.zip"]
+      out_dir: "${ocean_root}/datasets_staging/Derm/PAD-UFES-20"
+      image_pattern: "\\.png$"
+      strip_prefix: "^.*/"
+      rule: "direct"
+      size: 512
+      images_out: "images512"
+      copy_files: ["${datasets_root}/Derm/PAD-UFES-20/metadata.csv"]
+      expected_gb: 0.8
+    cbis_ddsm:
+      adapter: "mammo_dicom"
+      raw: "${datasets_root}/Mammo/CBIS-DDSM/CBIS-DDSM"
+      out_dir: "${ocean_root}/datasets_staging/Mammo/CBIS-DDSM"
+      id_pattern: "^(Mass|Calc)-(Test|Training)_P_[0-9]+_(LEFT|RIGHT)_(CC|MLO)(_[0-9]+)?$"
+      roi_suffix: "_[0-9]+$"
+      name_with_sop: false
+      size: 1024
+      images_out: "images1024"
+      masks_out: "masks1024"
+      copy_files: ["${datasets_root}/Mammo/CBIS-DDSM/mass_case_description_test_set.csv", "${datasets_root}/Mammo/CBIS-DDSM/calc_case_description_test_set.csv"]
+      expected_gb: 0.15
+    cmmd:
+      adapter: "mammo_dicom"
+      raw: "${datasets_root}/Mammo/CMMD/CMMD"
+      out_dir: "${ocean_root}/datasets_staging/Mammo/CMMD"
+      roi_suffix: ""
+      name_with_sop: true
+      size: 1024
+      images_out: "images1024"
+      masks_out: "masks1024"
+      copy_files: ["${datasets_root}/Mammo/CMMD/CMMD_clinicaldata_revision.xlsx"]
+      expected_gb: 1.0
+    brats2021:
+      adapter: "volumes"
+      raw: "${datasets_root}/MRI/BraTS2021/BraTS2021_Training_Data.tar"
+      out_dir: "${ocean_root}/datasets_staging/MRI/BraTS2021"
+      volume_pattern: "_(flair|t1ce|seg)\\.nii\\.gz$"
+      label_pattern: "_seg\\.nii\\.gz$"
+      strip_prefix: "^(\\./)?(BraTS2021_Training_Data/)?"
+      rule: "percentile"
+      body_mask: "nonzero"
+      volumes_out: ""
+      expected_gb: 4.0
+    bhsd:
+      adapter: "volumes"
+      raw: "${datasets_root}/CT/BHSD/label_192.zip"
+      out_dir: "${ocean_root}/datasets_staging/CT/BHSD"
+      volume_pattern: "\\.nii\\.gz$"
+      label_pattern: "/(labels?|ground[ _]truths?|masks?)/"
+      strip_prefix: "^(label_192/)?"
+      rule: "window"
+      window_center: 40
+      window_width: 80
+      anatomy: "head"
+      volumes_out: "volumes"
+      masks_out: "headmask"
+      expected_gb: 0.8
+    picai:
+      adapter: "volumes"
+      raw: ["${datasets_root}/MRI/PI-CAI/picai_public/picai_public_images_fold0.zip", "${datasets_root}/MRI/PI-CAI/picai_public/picai_public_images_fold1.zip", "${datasets_root}/MRI/PI-CAI/picai_public/picai_public_images_fold2.zip", "${datasets_root}/MRI/PI-CAI/picai_public/picai_public_images_fold3.zip", "${datasets_root}/MRI/PI-CAI/picai_public/picai_public_images_fold4.zip"]
+      out_dir: "${ocean_root}/datasets_staging/MRI/PI-CAI/picai_public"
+      volume_pattern: "_t2w\\.mha$"
+      rule: "percentile"
+      body_mask: "otsu"
+      volumes_out: ""
+      expected_gb: 4.3
+    cq500:
+      adapter: "cq500"
+      raw: "${datasets_root}/CT/CQ500/scans"
+      out_dir: "${ocean_root}/datasets_staging/CT/CQ500"
+      scan_pattern: "^CQ500-CT-[0-9]+"
+      min_thickness_mm: 3.0
+      excluded_patterns: ['BONE', 'SHARP', 'H70', 'H60', 'B70', 'B60', 'POST', '\+ ?C\b', '\bC ?\+', 'CECT', 'ORAL', '\bIV\b', '\d+ ?CC\b', '\b3D\b', '(?<!PRE )(?<!PRE-)(?<!NON )(?<!NON-)CONTRAST']
+      bhx_csv: "${datasets_root}/CT/CQ500/BHX/1_Initial_Manual_Labeling.csv"
+      bhx_series_column: "SeriesInstanceUID"
+      rule: "window"
+      window_center: 40
+      window_width: 80
+      anatomy: "head"
+      volumes_out: "volumes"
+      masks_out: "headmask"
+      slices_out: "slices"
+      copy_files: ["${datasets_root}/CT/CQ500/reads.csv"]
+      expected_gb: 2.0
+    lidc:
+      adapter: "lidc"
+      raw: "${datasets_root}/CT/LIDC-IDRI/LIDC-IDRI"
+      out_dir: "${ocean_root}/datasets_staging/CT/LIDC-IDRI"
+      patient_pattern: "^LIDC-IDRI-[0-9]{4}$"
+      rule: "window"
+      window_center: -600
+      window_width: 1500
+      anatomy: "lung"
+      min_readers: 3
+      min_diameter_mm: 3.0
+      consensus_level: 0.5
+      volumes_out: "volumes"
+      masks_out: "lungmask"
+      nodules_out: "nodules"
+      expected_gb: 37.0
+    pmcvqa:
+      adapter: "copy_subset"
+      raw: "${datasets_root}/VQA/PMC-VQA/images.zip"
+      out_dir: "${ocean_root}/datasets_staging/VQA/PMC-VQA"
+      questions_csv: "${datasets_root}/VQA/PMC-VQA/test_clean.csv"
+      image_column: "Figure_path"
+      images_out: "images"
+      copy_files: ["${datasets_root}/VQA/PMC-VQA/test_clean.csv"]
+      expected_gb: 0.25
+
+  outputs:
+    status_dir:        "${outputs_root}/status"
+    claims_dir:        "${outputs_root}/claims"
+    partitions_dir:    "${outputs_root}/partitions"
+    question_sets_dir: "${outputs_root}/question_sets"
+    renders_dir:       "${outputs_root}/renders"
+    models_dir:        "${outputs_root}/models"
+    dinov3_dir:        "${outputs_root}/dinov3"
+    metrics_dir:       "${outputs_root}/metrics"
+    contrasts_dir:     "${outputs_root}/contrasts"
+    selection_dir:     "${outputs_root}/selection"
+    benchmarks_dir:    "${outputs_root}/benchmarks"
+    externals_dir:     "${outputs_root}/externals"
+    robustness_dir:    "${outputs_root}/robustness"
+    contamination_dir: "${outputs_root}/contamination"
